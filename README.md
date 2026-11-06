@@ -1,154 +1,132 @@
 # MarketLens
 
-MarketLens compares a stock or ETF portfolio with a benchmark using historical
-prices. The dashboard shows returns, drawdowns, volatility, and correlations.
-The command-line tool saves the data and settings alongside its reports.
+Version 1.0.0 · [Release checks](docs/release-check.md) · [Changelog](CHANGELOG.md)
 
-A separate study is in progress: how do concentrated allocations and rebalancing
-frequency change returns and risk? The full-period and five-year comparisons are complete;
-[the first findings report](docs/findings.md) is available. See [the study plan](docs/analysis-brief.md)
-and [the run record](docs/study-run.md).
+Historical portfolio analysis with Python, SQL, and Streamlit. Explore stocks and
+ETFs, compare a portfolio with a benchmark, and inspect a reproducible study of
+concentration and rebalancing.
 
-## Run it
+The study asks: **does restoring target weights change the returns and risk of a
+concentrated portfolio?** It compares two allocations in AAPL, MSFT, and GOOGL
+across three strategies, four cost rates, and three time windows: 72 cases.
 
-Developed with Python 3.13. From the project folder:
+## What the study found
+
+At 10 basis points per dollar traded, buy-and-hold had the highest return in
+2016–2020, while monthly rebalancing led in 2021–2025 and over 2016–2025. In the
+second five-year window, daily led at zero cost but monthly led once costs were
+included. Equal weighting did not always produce a smaller maximum drawdown.
+
+These are descriptive results for three retrospectively selected companies, not
+an investment recommendation. [Executive summary](docs/executive-summary.md) ·
+[Findings and tables](docs/findings.md) · [Study design](docs/analysis-brief.md)
+
+## Run locally
+
+Developed and tested with Python 3.13. From the project folder:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements-lock.txt
+python -m marketlens.build_study
+python -m marketlens.record_validation
 python -m streamlit run app.py
 ```
 
-Open the local URL printed in the terminal. Search for a ticker, select a result,
-and click **Run analysis**. Assets start empty. Leave weights blank for an equal
-allocation, or enter decimal weights in the same order as the tickers.
+Building the study needs internet access and creates local data, reports, and a
+SQLite database. Downloads may fail or be rate-limited by the provider. To open
+just the portfolio tool, skip the build and validation commands. The Research
+study page shows setup instructions until its database exists.
 
-Search matches the start of the ticker, ignoring case. Names appear in results
-but are not searched. Edit **Assets** to remove a selection or enter a symbol
-manually. The listing directory loads automatically and is cached for one day.
+The written findings refer to the original saved snapshot. A new download may
+contain provider revisions. Rebuilt results are displayed from their own runs;
+the app does not replace missing results with sample numbers.
 
-The default request covers 50 years. Newer securities use whatever history the
-provider returns. The portfolio comparison uses the dates shared by every asset
-and the benchmark. **Asset history** shows each security's longer individual
-history. Its first returned price is not necessarily its IPO date.
+## Dashboard
 
-For a specific period, select **Custom dates** and enter dates in that section.
-**Portfolio settings** contains weights, benchmark, capital, and the risk-free rate.
-**Import saved prices** lets you run from a previous snapshot without downloading
-prices again. The directory search still needs a connection or a local cache.
+**Portfolio analysis** starts with no assets. Search matches ticker prefixes,
+ignoring case. Select a result to add it, or edit Assets directly. Blank weights
+mean an equal allocation. The default request covers 50 years where available;
+the first returned price is not necessarily the IPO date.
 
-## Command line
+**Research study** reads the saved SQL results. Change cost assumptions, compare
+periods and allocations, inspect rankings, and download CSVs or the findings.
 
-```bash
-python main.py \
-  --tickers AAPL,MSFT,GOOGL \
-  --weights 0.4,0.3,0.3 \
-  --benchmark SPY \
-  --start 2024-01-01 \
-  --end 2025-01-01
-```
+**Validation**, inside Research study, shows the last recorded test run and actual
+study checks. It displays timestamps and marks old evidence stale when checked
+code or data changes. Tests are never executed automatically for visitors.
 
-The end date is exclusive. Weights must be nonnegative and sum to 1. Without dates,
-the request runs from 50 years ago to today in New York, excluding today's session.
-Use `--years 10` for a shorter lookback.
+## Data and checks
 
-`--initial-value` defaults to 10000. `--risk-free 0.04` means a 4% annual rate;
-the dashboard accepts percentages instead, so enter `4` there. Run
-`python main.py --help` for all arguments.
+Yahoo Finance prices are retrieved with yfinance. Current US listings come from
+Nasdaq Trader's Nasdaq-listed and other-listed files. OTC and historical delisted
+securities are not covered. Other listed instruments, such as preferreds or units,
+can appear; listing coverage does not guarantee price availability.
 
-A successful run creates matching folders:
+The original snapshot has 2,514 observations for 2016–2025, with no missing cells.
+All dates match the reference exchange calendar. Accounting checks reconcile each
+case's holdings, returns, and trading fees. The rebuilt results match the original
+recorded runs. Tests use synthetic examples with known answers and temporary
+SQLite databases; they do not establish provider accuracy.
 
-| Location | Files |
-| --- | --- |
-| `data/snapshots/<run-id>/` | Shared prices, full available history, coverage, and source metadata |
-| `reports/<run-id>/` | Metrics, daily returns, portfolio values, drawdowns, correlations, and settings |
+**Independent price verification remains open.** A preselected 12-point sample was
+prepared, but the secondary-source probe returned a browser-verification page,
+not comparable prices. No observation is marked independently verified.
+[Date audit](docs/data-quality.md) · [Price-check status](docs/price-verification.md)
 
-Metadata includes observation dates, retrieval time, package versions, and a
-checksum of the shared prices file. To repeat a run with saved prices:
+## Methods and limitations
 
-```bash
-python main.py \
-  --input data/snapshots/<run-id>/prices.csv \
-  --tickers AAPL,MSFT,GOOGL \
-  --weights 0.4,0.3,0.3 \
-  --benchmark SPY
-```
+The portfolio dashboard and CLI use daily rebalancing without fees. The separate
+study supports buy-and-hold, monthly, and daily rebalancing with costs on purchases
+plus sales. Starting purchases and terminal liquidation are excluded from study
+costs. Fees come out of invested capital.
 
-Replace `<run-id>` with an existing folder. Offline mode uses every row in the
-file; date arguments apply only to downloads. Both the CLI and dashboard expect
-one header row, a `Date` column, and one adjusted-close column per asset and
-benchmark. The early tutorial file `data/raw/AAPL.csv` has multiple header rows
-and cannot be loaded directly.
+Prices are adjusted for splits and dividends. All assets must share a currency;
+there is no FX conversion. The model uses fractional holdings and adjusted-close
+execution prices. It excludes taxes, market impact, and actual fill reconstruction.
+The study uses 252 trading days and a fixed 0% risk-free rate. Current stock
+selection introduces hindsight and survivorship bias; three related stocks do
+not establish broad diversification. No statistical significance or future
+performance claim has been established. [Calculation notes](docs/methodology.md)
 
-## Assumptions
-
-The dashboard and CLI model daily rebalancing without trading costs, taxes,
-slippage, deposits, or withdrawals. All assets must use the same currency; there
-is no currency conversion. This is a model portfolio, not a record of actual trades.
-
-Prices are adjusted by the provider for splits and dividends. The downloader
-checks for missing, infinite, and nonpositive prices, duplicate dates, and date
-order. It rejects gaps within an asset's history and within the shared comparison
-period. The study snapshot also matches all expected dates in a separate
-[calendar audit](docs/data-quality.md). Passing these checks does not prove that
-prices are correct.
-
-Annualization assumes 252 trading days. Short samples can give unstable estimates.
-Picking current stocks to study the past also introduces selection and survivorship
-bias. See [the calculation notes](docs/methodology.md) for the formulas.
-
-The listing directory comes from Nasdaq Trader's Nasdaq-listed and other-listed
-files. It excludes test issues, historical delistings, and OTC securities. It also
-contains preferreds, warrants, and units. Listing coverage does not guarantee Yahoo
-price coverage. Share-class dots are changed to hyphens (`BRK.B` becomes `BRK-B`);
-other suffixes may need a manually entered provider symbol.
-
-Yahoo data may be revised, unavailable, or rate-limited. yfinance is unofficial.
-Check the provider's terms before redistributing data or using it commercially.
-
-## Tests and code
+## Tests and commands
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-Tests use made-up prices with known answers and mocked downloads. They cover
-returns, fee accounting, trading dates, validation, saved files, study combinations,
-and dashboard interactions. They do not need a network connection. GitHub Actions
-runs the same suite on pushes and pull requests.
-
-| File | Purpose |
-| --- | --- |
-| `app.py` | Dashboard |
-| `main.py` | CLI and report exports |
-| `marketlens/data.py` | Price downloads, validation, and snapshots |
-| `marketlens/securities.py` | Listing directory and ticker lookup |
-| `marketlens/analytics.py` | Dashboard returns and risk calculations |
-| `marketlens/simulation.py` | Buy-and-hold, monthly, and daily strategies with turnover and costs |
-| `marketlens/study.py` | The 24-case allocation and strategy comparison |
-| `marketlens/store_study.py` | SQLite imports and cost-scenario queries |
-
-`requirements-lock.txt` records the installed development versions.
-`requirements.txt` lists direct dependencies with version ranges. Data, reports,
-and the virtual environment are excluded from Git.
-
-The [code walkthrough](docs/learning-guide.md) is a starting point for reading the
-project. Study reports can now be loaded into SQLite:
+Tests run without live market requests. To update the dashboard's evidence:
 
 ```bash
-python -m marketlens.store_study reports/study/20261106T011618Z-d2aba2dd
+python -m marketlens.record_validation
 ```
 
-This stores the run and its 24 cases in `data/study/study.sqlite`, then runs
-[the SQL comparison](docs/analysis.sql) at 10 basis points. The query joins each
-scenario to its zero-cost baseline. Ending-value reduction includes the effect
-of fees on later returns, so it can differ from the dollar fees paid.
-The [schema](docs/study-schema.sql) defines keys, relationships, and constraints.
-Price calculations still run in Python; SQL stores and queries the study results.
+[Command guide](docs/usage.md) · [Code walkthrough](docs/learning-guide.md) ·
+[Interview guide](docs/interview-guide.md)
+
+## Code map
+
+| Location | Purpose |
+| --- | --- |
+| `app.py`, `pages/` | Portfolio, research, and validation views |
+| `main.py` | Portfolio CLI and exports |
+| `marketlens/data.py`, `securities.py` | Prices, listing lookup, validation, snapshots |
+| `marketlens/analytics.py`, `simulation.py` | Returns, risk, holdings, and fee accounting |
+| `marketlens/study.py`, `run_study.py` | Study combinations and window exports |
+| `marketlens/store_study.py`, `docs/*.sql` | SQLite schema, imports, joins, and rankings |
+| `marketlens/build_study.py` | One-command study setup |
+| `marketlens/validation.py`, `record_validation.py` | Recorded test and data-quality evidence |
+| `tests/` | Arithmetic, SQL, data, export, setup, and UI checks |
+
+Exact development versions are in `requirements-lock.txt`; direct dependency ranges
+are in `requirements.txt`. Generated data, reports, secrets, and environments are
+excluded from Git. Yahoo data may be revised or unavailable. Review provider terms
+before redistributing data or using it commercially.
 
 ## Sources
 
 - [yfinance download API](https://ranaroussi.github.io/yfinance/reference/api/yfinance.download.html)
-- [Nasdaq Trader directory fields](https://www.nasdaqtrader.com/trader.aspx?id=symboldirdefs)
+- [Nasdaq Trader directory definitions](https://www.nasdaqtrader.com/trader.aspx?id=symboldirdefs)
+- [Exchange calendar reference](https://github.com/gerrymanoim/exchange_calendars)
 - [Streamlit documentation](https://docs.streamlit.io/)

@@ -6,3 +6,5 @@ __pycache__/
 data/
 reports/
 .env
+.streamlit/secrets.toml
+dist/

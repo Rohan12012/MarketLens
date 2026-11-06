@@ -45,6 +45,8 @@ def add_search_selection():
 with st.sidebar:
     st.markdown('<div class="brand-mark">◈ &nbsp; MARKETLENS</div>', unsafe_allow_html=True)
     st.caption('PORTFOLIO RESEARCH')
+    st.page_link('app.py', label='Portfolio analysis')
+    st.page_link('pages/1_Research_study.py', label='Research study')
     st.divider()
     try:
         if 'directory' not in st.session_state:

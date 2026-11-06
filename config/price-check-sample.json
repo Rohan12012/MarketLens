@@ -1,0 +1,7 @@
+{
+  "symbols": ["AAPL", "MSFT", "GOOGL", "SPY"],
+  "dates": ["2016-01-04", "2020-08-31", "2025-12-31"],
+  "source": "Stooq daily CSV",
+  "adjustment_basis": "Unconfirmed; do not treat Close as equivalent to Yahoo adjusted close",
+  "selection_reason": "Study start, an intermediate date around an Apple split, and study end. Fixed before fetching the comparison source."
+}

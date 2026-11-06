@@ -9,21 +9,24 @@ from marketlens.compare_periods import compare_periods
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def ranking_chart(comparison):
+def ranking_chart(comparison, *, cost_bps=None, dark=False):
     data = comparison.copy()
     data['Period'] = data['first_date'].str[:4] + '–' + data['last_date'].str[:4]
-    rate = alt.param('cost_rate', value=10,
-                     bind=alt.binding_select(options=[0, 5, 10, 25], name='Cost per traded dollar (bps): '))
-    chart = alt.Chart(data).add_params(rate).transform_filter(
-        alt.datum.cost_bps == rate
-    ).mark_line(point=alt.OverlayMarkDef(size=90), strokeWidth=2.5).encode(
+    base = alt.Chart(data)
+    if cost_bps is None:
+        rate = alt.param('cost_rate', value=10,
+                         bind=alt.binding_select(options=[0, 5, 10, 25], name='Cost per traded dollar (bps): '))
+        base = base.add_params(rate).transform_filter(alt.datum.cost_bps == rate)
+    else:
+        base = base.transform_filter(alt.datum.cost_bps == cost_bps)
+    chart = base.mark_line(point=alt.OverlayMarkDef(size=90), strokeWidth=2.5).encode(
         x=alt.X('Period:N', sort=['2016–2020', '2021–2025', '2016–2025'], title=None,
                 axis=alt.Axis(labelAngle=0, labelPadding=12)),
         y=alt.Y('return_rank:Q', title='Return rank · 1 = highest',
                 scale=alt.Scale(domain=[3.2, 0.8]), axis=alt.Axis(values=[1, 2, 3])),
         color=alt.Color('strategy:N', title=None,
                         scale=alt.Scale(domain=['Buy-and-hold', 'Monthly', 'Daily'],
-                                        range=['#61748C', '#16876D', '#8959AF']),
+                                        range=['#91A4C0', '#45C4A0', '#B49BDD'] if dark else ['#61748C', '#16876D', '#8959AF']),
                         legend=alt.Legend(orient='bottom')),
         strokeDash=alt.StrokeDash('strategy:N', legend=None,
                                  scale=alt.Scale(domain=['Buy-and-hold', 'Monthly', 'Daily'],
@@ -43,12 +46,14 @@ def ranking_chart(comparison):
                   'Ranks show order, not the size of the return difference. Full-period returns span ten years.'],
         anchor='start', fontSize=19, subtitleFontSize=11, subtitlePadding=8,
     ))
+    text_color = '#C9D4E2' if dark else '#455468'
     return (chart.configure_view(stroke=None)
-            .configure_axis(domain=False, tickSize=0, gridColor='#E4E9EF',
-                            labelColor='#455468', titleColor='#455468', titlePadding=12)
-            .configure_header(labelFontSize=14, labelFontWeight='bold', labelPadding=18)
-            .configure_legend(labelFontSize=12, padding=18)
-            .configure(background='#FFFFFF', padding=28))
+            .configure_axis(domain=False, tickSize=0, gridColor='#26313E' if dark else '#E4E9EF',
+                            labelColor=text_color, titleColor=text_color, titlePadding=12)
+            .configure_header(labelFontSize=14, labelFontWeight='bold', labelPadding=18, labelColor=text_color)
+            .configure_title(color=text_color, subtitleColor=text_color)
+            .configure_legend(labelFontSize=12, padding=18, labelColor=text_color)
+            .configure(background='#0D1117' if dark else '#FFFFFF', padding=28))
 
 
 if __name__ == '__main__':
