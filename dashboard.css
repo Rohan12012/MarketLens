@@ -1,0 +1,22 @@
+/* Layout and hierarchy; chart colors live in marketlens/charts.py. */
+.stMainBlockContainer { max-width: 1480px; padding-top: 2.6rem; padding-bottom: 2rem; }
+[data-testid="stSidebar"] { border-right: 1px solid #26303d; }
+[data-testid="stSidebar"] > div:first-child { padding-top: 2rem; }
+.brand-mark { color: #e5ebf1; font-size: 1.15rem; font-weight: 750; letter-spacing: .12em; }
+.eyebrow { color: #7e92aa; font-size: .68rem; font-weight: 650; letter-spacing: .16em; margin: .2rem 0 .7rem; }
+.page-intro { color: #9aaec5; font-size: 1.05rem; margin-top: -.5rem; margin-bottom: 1.6rem; }
+h1 { font-size: 2.65rem !important; letter-spacing: -.055em; font-weight: 720 !important; }
+h2, h3 { letter-spacing: -.025em; }
+[data-testid="stMetricValue"] { font-variant-numeric: tabular-nums; font-size: 2rem; letter-spacing: -.04em; }
+[data-testid="stMetricLabel"] { color: #b1c0d2; }
+[data-testid="stVerticalBlockBorderWrapper"] { border-radius: 10px; }
+[data-testid="stTabs"] [role="tablist"] { gap: 1.8rem; margin: 1rem 0 1.5rem; }
+[data-testid="stTabs"] [role="tab"] { padding: .65rem 0; }
+[data-testid="stForm"] { border: 0; padding: 0; }
+.step-number { color: #45c4a0; font-size: .85rem; font-weight: 650; letter-spacing: .1em; margin-top: 2rem; }
+[data-testid="stCaptionContainer"] { line-height: 1.55; }
+@media (max-width: 760px) {
+  .stMainBlockContainer { padding: 1.5rem 1rem; }
+  h1 { font-size: 2.1rem !important; }
+  [data-testid="stMetricValue"] { font-size: 1.65rem; }
+}
