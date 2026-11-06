@@ -1,4 +1,4 @@
-"""Current US listing directory from Nasdaq Trader; not a delisted-security database."""
+"""Load and search current US listings from Nasdaq Trader."""
 from datetime import datetime, timezone, timedelta
 from io import StringIO
 from pathlib import Path
@@ -31,8 +31,8 @@ def parse_directory(text, source):
     result = pd.DataFrame({'Symbol': frame[symbol_column], 'Name': frame['Security Name'],
                            'Type': frame['ETF'].map({'Y': 'ETF', 'N': 'Stock / other'})})
     result['Exchange'] = 'Nasdaq' if source == 'nasdaq' else frame['Exchange'].map(EXCHANGES).fillna(frame['Exchange'])
-    # Yahoo represents ordinary share classes with a hyphen (BRK.B -> BRK-B).
-    # Other security suffixes may require manual provider symbols.
+    # Yahoo uses BRK-B where the directory uses BRK.B. Other suffixes may
+    # still need a manually entered Yahoo symbol.
     result['Price symbol'] = result['Symbol'].str.replace('.', '-', regex=False)
     return result.reset_index(drop=True)
 

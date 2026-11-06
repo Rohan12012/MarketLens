@@ -1,4 +1,4 @@
-"""End-to-end CLI test with explicitly synthetic offline observations."""
+"""CLI export tests using a synthetic local price file."""
 import contextlib
 import io
 import json

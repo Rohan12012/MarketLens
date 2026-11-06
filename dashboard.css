@@ -1,22 +1,44 @@
-/* Layout and hierarchy; chart colors live in marketlens/charts.py. */
-.stMainBlockContainer { max-width: 1480px; padding-top: 2.6rem; padding-bottom: 2rem; }
-[data-testid="stSidebar"] { border-right: 1px solid #26303d; }
-[data-testid="stSidebar"] > div:first-child { padding-top: 2rem; }
-.brand-mark { color: #e5ebf1; font-size: 1.15rem; font-weight: 750; letter-spacing: .12em; }
-.eyebrow { color: #7e92aa; font-size: .68rem; font-weight: 650; letter-spacing: .16em; margin: .2rem 0 .7rem; }
-.page-intro { color: #9aaec5; font-size: 1.05rem; margin-top: -.5rem; margin-bottom: 1.6rem; }
-h1 { font-size: 2.65rem !important; letter-spacing: -.055em; font-weight: 720 !important; }
+/* A compact research workspace. All figures come from the submitted analysis. */
+:root { --ml-border: #26313e; --ml-muted: #8c9bad; --ml-accent: #70dbc2; }
+.stApp { background: #0d1117; }
+.stMainBlockContainer { max-width: 1560px; padding: 2rem 2.5rem 3rem; }
+[data-testid="stSidebar"] { background: #111820; border-right: 1px solid var(--ml-border); }
+[data-testid="stSidebar"] > div:first-child { padding-top: 1.8rem; }
+[data-testid="stSidebar"] h3 { font-size: 1rem; margin-top: .3rem; }
+.brand-mark { font-size: 1.05rem; font-weight: 750; letter-spacing: .14em; color: #e5edf5; }
+.workspace-bar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; color: var(--ml-muted); font-size: .65rem; letter-spacing: .13em; margin-bottom: 1.7rem; }
+.mode-pill { border: 1px solid #2b3d40; padding: .4rem .65rem; border-radius: 4px; color: #a3c9bd; letter-spacing: .08em; }
+h1 { font-size: 2.35rem !important; letter-spacing: -.055em; font-weight: 720 !important; padding-bottom: .4rem !important; }
 h2, h3 { letter-spacing: -.025em; }
-[data-testid="stMetricValue"] { font-variant-numeric: tabular-nums; font-size: 2rem; letter-spacing: -.04em; }
-[data-testid="stMetricLabel"] { color: #b1c0d2; }
-[data-testid="stVerticalBlockBorderWrapper"] { border-radius: 10px; }
-[data-testid="stTabs"] [role="tablist"] { gap: 1.8rem; margin: 1rem 0 1.5rem; }
-[data-testid="stTabs"] [role="tab"] { padding: .65rem 0; }
+h3 { font-size: 1.08rem !important; font-weight: 620 !important; }
+.page-intro { color: #93a3b6; font-size: .95rem; margin: -.3rem 0 1.7rem; }
+.eyebrow { color: var(--ml-muted); font-size: .65rem; font-weight: 600; letter-spacing: .14em; margin-bottom: .7rem; }
+[data-testid="stMetricLabel"] { color: #a7b5c5; font-size: .78rem; }
+[data-testid="stMetricValue"] { font-size: 1.85rem; font-weight: 580; font-variant-numeric: tabular-nums; letter-spacing: -.045em; }
+[data-testid="stVerticalBlockBorderWrapper"] { border-radius: 9px; }
 [data-testid="stForm"] { border: 0; padding: 0; }
-.step-number { color: #45c4a0; font-size: .85rem; font-weight: 650; letter-spacing: .1em; margin-top: 2rem; }
-[data-testid="stCaptionContainer"] { line-height: 1.55; }
+[data-testid="stTabs"] [role="tablist"] { gap: 2rem; border-bottom: 1px solid var(--ml-border); margin: 1rem 0 1.3rem; }
+[data-testid="stTabs"] [role="tab"] { padding: .75rem 0; font-size: .86rem; }
+[data-testid="stCaptionContainer"] { color: var(--ml-muted); line-height: 1.5; font-size: .75rem; }
+.balance { font-size: clamp(2rem, 3.3vw, 3.4rem); line-height: 1.1; font-weight: 560; letter-spacing: -.055em; font-variant-numeric: tabular-nums; }
+.balance-detail { display: flex; gap: .65rem; flex-wrap: wrap; font-size: .8rem; color: var(--ml-muted); margin: .7rem 0 .8rem; }
+.gain { color: #70dbc2; font-variant-numeric: tabular-nums; }
+.loss { color: #f29b9b; font-variant-numeric: tabular-nums; }
+.holding-row { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #232e3a; padding: .85rem 0; font-size: .83rem; gap: .75rem; }
+.holding-row strong { font-weight: 650; letter-spacing: .02em; }
+.holding-row span { display: block; color: var(--ml-muted); font-size: .7rem; margin-top: .25rem; }
+.empty-hero { padding: 2.4rem 2rem 2.8rem; }
+.empty-icon { width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid #36574e; color: var(--ml-accent); border-radius: 10px; font-size: 1.8rem; margin-bottom: 1.8rem; }
+.empty-hero h2 { font-size: clamp(2rem, 3.5vw, 3.1rem) !important; line-height: 1.13; font-weight: 550; letter-spacing: -.045em; }
+.empty-hero p { color: #96a7ba; font-size: .94rem; line-height: 1.8; margin: 1rem 0 1.6rem; }
+.empty-tag { display: inline-block; border: 1px solid #2a3947; border-radius: 4px; color: #a7bbcc; padding: .4rem .65rem; font-size: .72rem; }
+.feature-icon { color: var(--ml-accent); font-size: 1.4rem; margin-bottom: .6rem; }
+.st-key-chart_view [role="radiogroup"] { gap: 1.2rem; }
 @media (max-width: 760px) {
-  .stMainBlockContainer { padding: 1.5rem 1rem; }
-  h1 { font-size: 2.1rem !important; }
-  [data-testid="stMetricValue"] { font-size: 1.65rem; }
+  .stMainBlockContainer { padding: 1.2rem 1rem 2rem; }
+  .workspace-bar { font-size: .55rem; letter-spacing: .04em; }
+  .mode-pill { padding: .3rem .4rem; }
+  .empty-hero { padding: 1rem .5rem 1.5rem; }
+  [data-testid="stMetricValue"] { font-size: 1.55rem; }
+  [data-testid="stTabs"] [role="tablist"] { gap: 1rem; }
 }

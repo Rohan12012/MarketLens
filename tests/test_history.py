@@ -1,4 +1,4 @@
-"""Synthetic listing/history fixtures; not actual market observations."""
+"""Checks for unequal price histories and listing files."""
 from datetime import date
 import tempfile
 from pathlib import Path

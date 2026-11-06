@@ -16,7 +16,7 @@ def style(chart):
 
 
 def comparison_chart(frame, percentage=False, height=340):
-    """Render the full history with date/value tooltips and a shared color scale."""
+    """Plot portfolio and benchmark values over time."""
     long = frame.rename_axis('Date').reset_index().melt('Date', var_name='Series', value_name='Value')
     # Inline values avoid Altair's default row limit for long price histories.
     source = alt.InlineData(values=long.assign(Date=long.Date.dt.strftime('%Y-%m-%d')).to_dict('records'))
@@ -42,3 +42,26 @@ def allocation_chart(assets, weights):
         tooltip=['Asset:N', alt.Tooltip('Weight:Q', format='.1%')],
     ).properties(height=max(150, 35 * len(assets)))
     return style(chart)
+
+
+def correlation_chart(correlation):
+    """Show correlations as labeled cells; leave undefined values blank."""
+    rows = []
+    for left in correlation.index:
+        for right in correlation.columns:
+            value = correlation.loc[left, right]
+            defined = value == value  # NaN correlations occur for constant returns.
+            rows.append({'Asset': left, 'Other': right,
+                         'Correlation': float(value) if defined else None,
+                         'Label': f'{value:.2f}' if defined else '—'})
+    base = alt.Chart(alt.InlineData(values=rows)).encode(
+        x=alt.X('Other:N', title=None, sort=list(correlation.columns),
+                axis=alt.Axis(labelAngle=0, orient='top', grid=False)),
+        y=alt.Y('Asset:N', title=None, sort=list(correlation.index), axis=alt.Axis(grid=False)),
+        tooltip=['Asset:N', 'Other:N', alt.Tooltip('Correlation:Q', format='.2f')],
+    )
+    cells = base.mark_rect(stroke='#0D1117', strokeWidth=3, cornerRadius=4).encode(
+        color=alt.Color('Correlation:Q', scale=alt.Scale(domain=[-1, 0, 1],
+                        range=['#4D6DAD', '#192431', '#277D69']), legend=None))
+    labels = base.mark_text(color='#E5EBF1', fontSize=12).encode(text='Label:N')
+    return style((cells + labels).properties(height=max(180, len(correlation) * 50)))

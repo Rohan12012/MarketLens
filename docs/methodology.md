@@ -1,73 +1,77 @@
-# Calculation notes
+# How the numbers are calculated
 
-## Daily returns and rebalancing
+## Returns
 
-For an adjusted close price P, the simple return on observation t is:
+For adjusted close prices P:
 
 ```text
-r[t] = P[t] / P[t-1] - 1
+asset_return[t] = P[t] / P[t-1] - 1
 portfolio_return[t] = sum(weight[i] * asset_return[i, t])
 value[t] = value[t-1] * (1 + portfolio_return[t])
 ```
 
-There is no return for the first price observation. A panel with 252 price rows
-therefore provides 251 daily returns.
+The weighted-return formula above describes the dashboard's daily rebalanced,
+zero-cost model. Buy-and-hold and monthly strategies instead track dollar holdings
+as weights drift. There is no return for the first price, so 252 price observations
+produce 251 returns.
 
-Weights are constant across observations. This models rebalancing to the target
-allocation each day, without transaction costs. In a buy-and-hold portfolio,
-weights drift with prices; its results would generally differ.
-
-The benchmark is compounded over the same dates, starting with the same capital.
-Provider-adjusted closes account for splits and dividends. Dividends are not added
-separately. This is a return approximation, not a reconstruction of brokerage cash
-flows or trade executions.
+The benchmark uses the same dates and starting capital. Prices already include
+provider adjustments for splits and dividends; dividends are not added again.
+These calculations approximate investment returns rather than reconstructing
+brokerage trades and cash flows.
 
 ## Metrics
 
-Let N be the number of daily returns and W the final wealth divided by initial
-wealth. Annualization uses 252 trading days.
+Let N be the number of returns and W be final value divided by starting value.
+Annualization assumes 252 trading days.
 
-| Metric | Calculation |
+| Metric | Formula |
 | --- | --- |
 | Total return | W − 1 |
 | Annualized return | W^(252/N) − 1 |
 | Annualized volatility | Sample standard deviation of daily returns × sqrt(252) |
 | Sharpe ratio | Mean daily excess return × 252 / annualized volatility |
-| Drawdown | Current wealth / highest wealth so far − 1 |
-| Maximum drawdown | Most negative drawdown in the sample |
-| Asset correlation | Pearson correlation between daily asset return series |
+| Drawdown | Value / highest value so far − 1 |
+| Maximum drawdown | Lowest drawdown in the period |
+| Asset correlation | Pearson correlation of daily asset returns |
 
-The annual risk-free rate is converted to a daily rate as
-`(1 + annual_rate) ** (1/252) - 1` before computing excess returns.
-Volatility uses the sample standard deviation (`ddof=1`). Sharpe is undefined when
-volatility is zero or numerically negligible. Correlation is undefined for a
-constant return series.
+The daily risk-free rate is `(1 + annual_rate) ** (1/252) - 1`.
+Volatility uses `ddof=1`, the sample standard deviation. Sharpe is undefined when
+volatility is zero or negligible. Correlation is undefined for constant returns.
 
-Initial capital is included in the running peak. A loss on the first return day
-therefore counts toward drawdown. Maximum drawdown is reported as a negative value.
-CSV return metrics use decimals: `0.05` means 5%. Sharpe and correlation are unitless.
+Starting capital counts as the first peak, so an immediate loss counts toward
+drawdown. Drawdowns are negative. Return metrics in CSVs are decimals: `0.05`
+means 5%. Sharpe and correlation have no units.
 
-## Data checks and reproducibility
+## Dates and missing prices
 
-The price panel must have at least three observations, unique ticker columns,
-and valid dates in ascending order without duplicates. All prices must be finite
-and positive. For downloads, leading and trailing gaps from unequal histories remain
-in the full-history export. Each security is validated between its first and last
-returned observations. The comparison starts at the latest first-available date and
-ends at the earliest last-available date, with at least three shared observations.
-Internal gaps remain errors; prices are never forward-filled. First available means
-the first returned price within the requested window, not a verified IPO date.
+The aligned price table needs at least three rows, unique ticker columns, and
+valid dates in ascending order without duplicates. Prices must be positive and
+finite. Downloads keep each asset's full history, including gaps outside its
+available dates. Each asset is checked between its first and last returned prices.
 
-A snapshot preserves the returned adjusted closes. Its metadata records the source,
-requested download dates, actual observation dates, retrieval timestamp, package
-versions, and a SHA-256 checksum. Report settings record weights, benchmark, initial
-capital, risk-free rate, and rebalancing assumptions. A checksum can reveal a changed
-CSV; it does not establish that the original prices were correct.
+The portfolio comparison starts at the latest first-available date and ends at
+the earliest last-available date. Gaps inside that period are errors; prices are
+not forward-filled. First available means the earliest price returned in the
+requested window. It is not a verified IPO date.
 
-Offline input uses the fully aligned prices.csv, not the gap-bearing
-available_history.csv export. It is expected to use adjusted closes in one currency. The CSV alone
-cannot verify those conventions. An offline run uses the entire supplied file and
-records its path as the source; it does not retrieve the original provider metadata.
+## Saved data
 
-The tests check arithmetic and software behavior with synthetic inputs. They do
-not establish provider accuracy or investment suitability.
+Snapshots keep the adjusted prices and metadata: source, requested dates, returned
+dates, retrieval time, package versions, and a SHA-256 checksum of `prices.csv`.
+Report settings record the weights, capital, benchmark, risk-free rate, and
+rebalancing rule. The checksum can detect a changed file, not an incorrect price.
+
+Offline mode reads the aligned `prices.csv`, not `available_history.csv`, which
+may contain gaps. It uses every supplied row and records the input path as its
+source; it does not recover the original provider metadata. The file is expected
+to contain adjusted closes in one currency, but its numbers alone cannot verify
+those conventions.
+
+## Study strategies
+
+The dashboard and CLI still use daily rebalancing without fees. The separate
+study code adds buy-and-hold, monthly rebalancing, trade logs, and cost scenarios.
+Fees are paid from capital and included in strategy returns. Trading schedules,
+turnover definitions, and cost assumptions are recorded in
+[the study plan](analysis-brief.md).

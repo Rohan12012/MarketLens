@@ -1,4 +1,4 @@
-"""Historical analysis of a long-only, daily rebalanced model portfolio."""
+"""Returns and risk metrics for the daily rebalanced portfolio."""
 import numpy as np
 import pandas as pd
 from marketlens.data import validate_prices

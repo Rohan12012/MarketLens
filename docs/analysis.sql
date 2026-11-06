@@ -1,8 +1,17 @@
--- Run after importing a generated daily_returns.csv as daily_returns.
--- Returns are decimals, and these are arithmetic DAILY averages.
-SELECT COUNT(*) AS trading_observations,
-       AVG(CAST(Portfolio AS REAL)) AS average_daily_portfolio_return,
-       AVG(CAST(Benchmark AS REAL)) AS average_daily_benchmark_return,
-       AVG(CAST(Portfolio AS REAL) - CAST(Benchmark AS REAL)) AS average_daily_active_return,
-       SUM(CASE WHEN CAST(Portfolio AS REAL) < 0 THEN 1 ELSE 0 END) AS negative_days
-FROM daily_returns;
+-- Compare each cost scenario with the same allocation and strategy at zero cost.
+-- Bind :run_id to a stored run and :cost_bps to the rate to inspect.
+SELECT scenario.allocation,
+       scenario.strategy,
+       scenario.cost_bps,
+       ROUND(scenario.ending_value, 2) AS ending_value,
+       ROUND(scenario.total_cost, 2) AS fees_paid,
+       ROUND(baseline.ending_value - scenario.ending_value, 2) AS ending_value_reduction
+FROM study_results AS scenario
+JOIN study_results AS baseline
+  ON baseline.run_id = scenario.run_id
+ AND baseline.allocation = scenario.allocation
+ AND baseline.strategy = scenario.strategy
+ AND baseline.cost_bps = 0
+WHERE scenario.run_id = :run_id
+  AND scenario.cost_bps = :cost_bps
+ORDER BY scenario.allocation, scenario.strategy;

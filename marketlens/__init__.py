@@ -1,1 +1,1 @@
-"""MarketLens historical market and portfolio analytics."""
+"""MarketLens portfolio analysis."""

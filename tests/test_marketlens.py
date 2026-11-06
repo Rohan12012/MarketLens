@@ -1,4 +1,4 @@
-"""Synthetic test fixtures are arithmetic examples, not market observations."""
+"""Checks for return calculations, price validation, and saved data."""
 import tempfile
 from pathlib import Path
 import unittest

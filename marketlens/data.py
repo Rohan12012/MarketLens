@@ -1,4 +1,4 @@
-"""Download and preserve validated adjusted daily close prices."""
+"""Download, check, and save daily adjusted prices."""
 from datetime import date, datetime, timezone
 from zoneinfo import ZoneInfo
 from pathlib import Path
@@ -33,7 +33,7 @@ def validate_prices(prices):
 
 
 def history_window(years=50, today=None):
-    """Use New York's calendar date; exclude today's potentially unfinished session."""
+    """Choose a lookback window ending before today in New York."""
     today = today or datetime.now(ZoneInfo('America/New_York')).date()
     if not 1 <= years <= 100:
         raise ValueError('History years must be between 1 and 100.')
@@ -45,7 +45,7 @@ def history_window(years=50, today=None):
 
 
 def align_history(history):
-    """Trim only outside shared availability; missing prices within it remain errors."""
+    """Find the shared date range and reject missing prices within it."""
     if history.empty or history.isna().all().any():
         raise ValueError('One or more requested symbols returned no price history.')
     if not isinstance(history.index, pd.DatetimeIndex) or history.index.hasnans:
@@ -89,8 +89,8 @@ def download_history(symbols, start, end):
     prices = prices.loc[:, symbols]
     prices.index = pd.to_datetime(prices.index).tz_localize(None)
     prices.index.name = 'Date'
-    # Leading/trailing gaps can reflect different listing dates. Validate each
-    # security within its own coverage before comparing their shared period.
+    # Assets can start trading on different dates. Check each available history
+    # before trimming the comparison to their shared period.
     for symbol in prices:
         series = prices[symbol].dropna()
         if series.empty:
